@@ -1,7 +1,7 @@
 import pygame
 from fighter import Fighter
 
-pygame.init()
+pygame.init() #avance 1 Parametros de pantalla y fps junto con la clase fighter
 
 Screen_width = 1280
 Screen_heigt = 720
@@ -24,8 +24,8 @@ while running:
 
     pygame.draw.rect(screen, (100,100,100),(0,suelo,Screen_width,50))
 
-    fighter_1.move(Screen_width,Screen_heigt,suelo)
-    fighter_2.move(Screen_width,Screen_heigt,suelo)
+    fighter_1.move(Screen_width,Screen_heigt,suelo,target=fighter_2)
+    fighter_2.move(Screen_width,Screen_heigt,suelo, target=fighter_1)
 
     fighter_1.dibujar(screen)
     fighter_2.dibujar(screen)
