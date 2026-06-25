@@ -46,11 +46,11 @@ class Fighter:
                     self.attack()
         
             if self.player == 2:
-                if key[pygame.K_j]:
+                if key[pygame.K_LEFT]:
                     dx = -Speed
-                if key[pygame.K_l]:
+                if key[pygame.K_RIGHT]:
                     dx = Speed
-                if key[pygame.K_i] and not self.isJumping: #avance 1
+                if key[pygame.K_UP] and not self.isJumping: #avance 1
                     self.vel_y = self.jump_force
                     self.isJumping = True
                 if key[pygame.K_o] or key[pygame.K_p]: #avance 2
