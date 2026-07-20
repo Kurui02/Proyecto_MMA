@@ -1,5 +1,5 @@
 import pygame
-from .spritesheet import SpriteSheet
+from spritesheet import SpriteSheet
 from pathlib import Path
 
 Roster_Config = {
