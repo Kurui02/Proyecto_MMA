@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from fighter import Fighter 
 class MenuManager:
     def __init__(self, game):
@@ -8,6 +9,13 @@ class MenuManager:
         self.menu_options = ["JUGAR", "SALIR"]
         self.selected_option = 0
         self.bg_scroll = 0.0
+
+        self.showModal = False
+        self.modal_options = ["P1 vs P2", "P1 vs CPU"]
+        self.modal_cursor = 0
+
+        self.intro_timer = 0
+        self.intro_finished = False
 
         self.p1_cursor = 0
         self.p2_cursor = 1
@@ -34,10 +42,9 @@ class MenuManager:
     def ejecutar_opcion_menu(self):
         if self.menu_options[self.selected_option] == "JUGAR":
             self.game.play_sfx("select")
-            self.p1_selected = False
-            self.p2_selected = False
-            self.game.state = "SELECT"
-            self.game.play_sfx("selectCharacter")
+            self.showModal = True
+            self.modal_cursor = 0
+            self.game.input_cooldown = 15
         elif self.menu_options[self.selected_option] == "SALIR":
             self.game.play_sfx("back")
             pygame.mixer.music.stop()
@@ -45,9 +52,50 @@ class MenuManager:
         self.game.input_cooldown = 15
 
     def update_menu(self, dt, key):
-        self.bg_scroll = (self.bg_scroll + 50 * dt) % 100
+        self.bg_scroll = (self.bg_scroll + 50 * dt) % 80
+
+        if not self.intro_finished:
+            self.intro_timer += dt
+
+            if key[pygame.K_RETURN] or key[pygame.K_SPACE]:
+                self.intro_finished = True
+                self.game.play_sfx("select")
+                self.game.input_cooldown = 15
+            elif self.intro_timer >= 2.6:
+                self.intro_finished = True
+                self.game.play_sfx("hit")
+            return
+        
         mouse_pos = pygame.mouse.get_pos()
         mouse_click = pygame.mouse.get_pressed()[0]
+
+        if self.showModal:
+            if self.game.input_cooldown == 0:
+                if key[pygame.K_UP]:
+                    self.game.play_sfx("select")
+                    self.modal_cursor = (self.modal_cursor - 1) % len(self.modal_options)
+                    self.game.input_cooldown = 15
+                elif key[pygame.K_DOWN]:
+                    self.game.play_sfx("select")
+                    self.modal_cursor = (self.modal_cursor + 1) % len(self.modal_options)
+                    self.game.input_cooldown = 15
+                elif key[pygame.K_RETURN]:
+                    self.game.play_sfx("selectCharacter")
+                    if self.modal_options[self.modal_cursor] == "P1 vs P2":
+                        self.game.game_mode = "P2"
+                    else:
+                        self.game.game_mode = "CPU"
+
+                    self.showModal = False
+                    self.p1_selected = False
+                    self.p2_selected = False
+                    self.game.state = "SELECT"
+                    self.game.input_cooldown = 15
+                elif key[pygame.K_ESCAPE]:
+                    self.game.play_sfx("select")
+                    self.show_modal = False
+                    self.game.input_cooldown = 15
+            return
 
         if self.game.input_cooldown == 0:
             if key[pygame.K_UP]:
@@ -88,7 +136,11 @@ class MenuManager:
                     self.p1_selected = True
                     self.game.input_cooldown = 15
 
-            if not self.p2_selected:
+                    if self.game.game_mode == "CPU":
+                        self.p2_cursor = random.randint(0, len(self.game.roster) - 1)
+                        self.p2_selected = True
+
+            if not self.p2_selected and self.game.game_mode == "P2":
                 if key[pygame.K_LEFT]:
                     self.game.play_sfx("select")
                     self.p2_cursor = (self.p2_cursor - 1) % len(self.game.roster)
@@ -152,6 +204,55 @@ class MenuManager:
                 self.p2_selected = False
                 self.game.input_cooldown = 15
 
+    def draw_intro_sequence(self):
+    
+        if self.intro_timer < 1.4:
+            progress = min(1.0, self.intro_timer / 0.8)
+            ease_progress = 1 - (1 - progress) ** 3 
+
+            if "YURI" in self.game.portraits:
+                img_yuri = pygame.transform.smoothscale(self.game.portraits["YURI"], (500, 650))
+                start_x_yuri = -500
+                target_x_yuri = 50
+                x_yuri = start_x_yuri + (target_x_yuri - start_x_yuri) * ease_progress
+                self.game.screen.blit(img_yuri, (int(x_yuri), 100))
+            if "KYO" in self.game.portraits:
+                raw_kyo = pygame.transform.smoothscale(self.game.portraits["KYO"], (500, 650))
+                img_kyo = pygame.transform.flip(raw_kyo, True, False)
+                start_x_kyo = self.game.S_WIDTH
+                target_x_kyo = self.game.S_WIDTH - 550
+                x_kyo = start_x_kyo + (target_x_kyo - start_x_kyo) * ease_progress
+                self.game.screen.blit(img_kyo, (int(x_kyo), 100))
+            
+            if self.intro_timer > 0.4:
+                txt_vs = self.game.fuente_ko.render("V S", True, (255, 50, 50))
+                rect_vs = txt_vs.get_rect(center=(self.game.S_WIDTH // 2, self.game.S_HEIGHT // 2))
+                self.game.screen.blit(txt_vs, rect_vs)
+
+        else:
+            title_progress = min(1.0, (self.intro_timer - 1.4) / 0.6)
+            ease_title = 1 - (1 - title_progress) ** 2
+
+            start_y = -150
+            target_y = 200
+            current_y = start_y + (target_y - start_y) * ease_title
+
+            font_path = self.game.BASE_DIR / "assets" / "font" / "The King of Fighters Font.ttf"
+            try:
+                fuente = pygame.font.Font(str(font_path), 110)
+            except:
+                fuente = pygame.font.SysFont("Impact", 110)
+
+            txt_titulo = fuente.render("ART OF FIGHTERS", True, (255, 200, 0))
+            txt_sombra = fuente.render("ART OF FIGHTERS", True, (0, 0, 0))
+            rect_titulo = txt_titulo.get_rect(center=(self.game.S_WIDTH // 2, int(current_y)))
+            
+            self.game.screen.blit(txt_sombra, (rect_titulo.x + 6, rect_titulo.y + 6))
+            self.game.screen.blit(txt_titulo, rect_titulo)
+
+            txt_skip = self.game.fuente_nombres.render("Presiona ENTER para saltar...", True, (150, 150, 150))
+            self.game.screen.blit(txt_skip, txt_skip.get_rect(center=(self.game.S_WIDTH // 2, self.game.S_HEIGHT - 50)))
+
     def draw_menu(self):
         self.game.screen.fill((30, 30, 35))
 
@@ -160,10 +261,14 @@ class MenuManager:
             end_pos = (i + self.bg_scroll - self.game.S_HEIGHT, self.game.S_HEIGHT)
             pygame.draw.line(self.game.screen, (45, 45, 50), start_pos, end_pos, 10)
         
+        if not self.intro_finished:
+            self.draw_intro_sequence()
+            return
+
         scale_factor = 1.0 + math.sin(pygame.time.get_ticks() / 300.0) * 0.05
         font_size = int(100 * scale_factor)
 
-        font_path = self.game.BASE_DIR / "Assets" / "font" / "The King of Fighters Font.ttf"
+        font_path = self.game.BASE_DIR / "assets" / "font" / "The King of Fighters Font.ttf"
         try:
             fuente_pulsante = pygame.font.Font(str(font_path), font_size)
         except:
@@ -175,7 +280,7 @@ class MenuManager:
         self.game.screen.blit(txt_sombra, (rect_titulo.x + 5, rect_titulo.y + 5))
         self.game.screen.blit(txt_titulo, rect_titulo)
 
-        for i , option in enumerate(self.menu_options):
+        for i, option in enumerate(self.menu_options):
             color = (255,255,255) if i == self.selected_option else (100,100,100)
             txt_option = self.game.fuente_menu.render(option, True, color)
             rect_option = txt_option.get_rect(center=(self.game.S_WIDTH // 2, 400 + (i * 70)))
@@ -184,6 +289,32 @@ class MenuManager:
             if i == self.selected_option:
                 cursor_rect = pygame.Rect(rect_option.left - 40, rect_option.centery - 10, 20, 20)
                 pygame.draw.rect(self.game.screen, (255, 0, 0), cursor_rect)
+
+        if self.showModal:
+            overlay = pygame.Surface((self.game.S_WIDTH, self.game.S_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            self.game.screen.blit(overlay, (0, 0))
+
+            box_w, box_h = 500, 300
+            box_x = (self.game.S_WIDTH - box_w) // 2
+            box_y = (self.game.S_HEIGHT - box_h) // 2
+            
+            pygame.draw.rect(self.game.screen, (20, 20, 25), (box_x, box_y, box_w, box_h))
+            pygame.draw.rect(self.game.screen, (255, 200, 0), (box_x, box_y, box_w, box_h), 4)
+            pygame.draw.rect(self.game.screen, (255, 255, 255), (box_x + 6, box_y + 6, box_w - 12, box_h - 12), 1)
+
+            txt_mod_title = self.game.fuente_nombres.render("SELECCIONA EL MODO", True, (255, 215, 0))
+            self.game.screen.blit(txt_mod_title, txt_mod_title.get_rect(center=(self.game.S_WIDTH // 2, box_y + 50)))
+
+            for i, opt_text in enumerate(self.modal_options):
+                color = (255, 255, 255) if i == self.modal_cursor else (100, 100, 100)
+                txt_opt = self.game.fuente_menu.render(opt_text, True, color)
+                rect_opt = txt_opt.get_rect(center=(self.game.S_WIDTH // 2, box_y + 140 + (i * 60)))
+                self.game.screen.blit(txt_opt, rect_opt)
+
+                if i == self.modal_cursor:
+                    cursor_rect = pygame.Rect(rect_opt.left - 30, rect_opt.centery - 8, 16, 16)
+                    pygame.draw.rect(self.game.screen, (255, 50, 50), cursor_rect)
 
     def draw_select(self):
         self.game.screen.fill((15,15,20))

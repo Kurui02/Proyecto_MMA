@@ -54,14 +54,15 @@ class MMAGame:
         self.winner_msg = ""
         self.state = "MENU"
         self.input_cooldown = 30
+        self.game_mode = "P2"
         
 
         self.roster = ["YURI","KYO","TERRY","MAI",]
         self.stages = [
-            {"name": "Escenario 1", "bgm": "Ost 1 prueba.mp3"},
-            {"name": "Escenario 2", "bgm": "OST 2"},
-            {"name": "Escenario 3", "bgm": "OST 3"},
-            {"name": "Escenario 4", "bgm": "OST 4"}
+            {"name": "Escenario 1", "bgm": "Ost 1.mp3"},
+            {"name": "Escenario 2", "bgm": "Ost 2.mp3"},
+            {"name": "Escenario 3", "bgm": "Ost 3.mp3"},
+            {"name": "Escenario 4", "bgm": "Ost 4.mp3"}
         ]
         
         self.p1_cursor = 0
