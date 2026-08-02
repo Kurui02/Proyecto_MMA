@@ -187,8 +187,9 @@ class MenuManager:
                 self.game.p2_cursor = self.p2_cursor
                 self.game.stage_cursor = self.stage_cursor
 
+                isCpu = (self.game.game_mode == "CPU")
                 self.game.fighter_1 = Fighter(player=1, x=200, y=self.game.suelo-180, char_name=char_p1)
-                self.game.fighter_2 = Fighter(player=2, x=1000, y=self.game.suelo-180, char_name=char_p2)
+                self.game.fighter_2 = Fighter(player=2, x=1000, y=self.game.suelo-180, char_name=char_p2, is_cpu=isCpu)
 
                 self.game.reset_match()
                 selected_bgm = self.game.stages[self.stage_cursor]["bgm"]
@@ -216,13 +217,13 @@ class MenuManager:
                 target_x_yuri = 50
                 x_yuri = start_x_yuri + (target_x_yuri - start_x_yuri) * ease_progress
                 self.game.screen.blit(img_yuri, (int(x_yuri), 100))
-            if "KYO" in self.game.portraits:
-                raw_kyo = pygame.transform.smoothscale(self.game.portraits["KYO"], (500, 650))
-                img_kyo = pygame.transform.flip(raw_kyo, True, False)
-                start_x_kyo = self.game.S_WIDTH
-                target_x_kyo = self.game.S_WIDTH - 550
-                x_kyo = start_x_kyo + (target_x_kyo - start_x_kyo) * ease_progress
-                self.game.screen.blit(img_kyo, (int(x_kyo), 100))
+            if "KIM" in self.game.portraits:
+                raw_kim = pygame.transform.smoothscale(self.game.portraits["KIM"], (500, 650))
+                img_kim = pygame.transform.flip(raw_kim, True, False)
+                start_x_kim = self.game.S_WIDTH
+                target_x_kim = self.game.S_WIDTH - 550
+                x_kim = start_x_kim + (target_x_kim - start_x_kim) * ease_progress
+                self.game.screen.blit(img_kim, (int(x_kim), 100))
             
             if self.intro_timer > 0.4:
                 txt_vs = self.game.fuente_ko.render("V S", True, (255, 50, 50))

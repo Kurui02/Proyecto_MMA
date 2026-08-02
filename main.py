@@ -57,7 +57,7 @@ class MMAGame:
         self.game_mode = "P2"
         
 
-        self.roster = ["YURI","KYO","TERRY","MAI",]
+        self.roster = ["YURI","KIM","GAI","KASUMI",]
         self.stages = [
             {"name": "Escenario 1", "bgm": "Ost 1.mp3"},
             {"name": "Escenario 2", "bgm": "Ost 2.mp3"},
@@ -71,9 +71,10 @@ class MMAGame:
 
         self.load_visual()
 
+        isCpu =(self.game_mode == "CPU")
         self.menu = MenuManager(self)
         self.fighter_1 = Fighter(player=1, x =200, y=self.suelo -180, char_name=self.roster[self.p1_cursor])
-        self.fighter_2 = Fighter(player=2, x =1000, y=self.suelo -180,char_name=self.roster[self.p2_cursor])
+        self.fighter_2 = Fighter(player=2, x =1000, y=self.suelo -180,char_name=self.roster[self.p2_cursor],is_cpu=isCpu)
 
     def run(self):
         while self.running:
